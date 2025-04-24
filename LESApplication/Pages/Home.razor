@@ -1,0 +1,255 @@
+﻿@page "/"
+@using LESApplication.Models
+@using LESApplication.Services
+
+<PageTitle>LES</PageTitle>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+<div class="container mt-4 bg-dark p-4">
+    <style>
+        .titulo-principal {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #007bff, #6610f2);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+    </style>
+
+    <h1 class="text-center mb-4 p-4 titulo-principal">Grupo "C"</h1>
+    <h1 class="text-center mb-4 p-4 text-white bg-primary rounded shadow-lg fw-bold">
+        Lista Enlazada Simple
+    </h1>
+
+    <div class="card p-4 shadow-sm">
+        <form>
+            <div class="bg-primary p-2 text-dark bg-opacity-50 mb-3 row">
+                <label for="Valor" class="col-sm-3 col-form-label">Valor</label>
+                <div class="col-sm-9">
+                    <input type="text" name="valor" @bind="Valor" class="form-control" placeholder="Nuevo valor" />
+                </div>
+            </div>
+
+            <div class="bg-primary p-2 text-dark bg-opacity-25 mb-3 row">
+                <label for="ValorBuscado" class="col-sm-3 col-form-label">Valor buscado</label>
+                <div class="col-sm-9">
+                    <input type="text" name="valorBuscado" @bind="ValorBuscado" class="form-control" placeholder="Valor buscado" />
+                </div>
+            </div>
+
+            <div class="bg-primary p-2 text-dark bg-opacity-10 mb-3 row">
+                <label for="Posicion" class="col-sm-3 col-form-label">Posición</label>
+                <div class="col-sm-9">
+                    <input type="number" name="Posicion" @bind="Posicion" class="form-control" placeholder="Posición" />
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="mb-3">
+        <button @onclick="AgregarInicio" class="btn btn-primary me-2 mb-2">Agregar al Inicio</button>
+        <button @onclick="AgregarFinal" class="btn btn-primary me-2 mb-2">Agregar al Final</button>
+        <button @onclick="AgregarAntesDe" class="btn btn-success me-2 mb-2">Agregar Antes del VB</button>
+        <button @onclick="AgregarDespuesDe" class="btn btn-success me-2 mb-2">Agregar Después del VB</button>
+        <button @onclick="AgregarEnPosicion" class="btn btn-warning me-2 mb-2">Agregar en Posición</button>
+        <button @onclick="AgregarAntesDePosicion" class="btn btn-warning me-2 mb-2">Agregar antes de Posición</button>
+        <button @onclick="AgregarDespuesDePosicion" class="btn btn-warning me-2 mb-2">Agregar después de Posición</button>
+        <button @onclick="RecorrerListaRecursivo" class="btn btn-info me-2 mb-2">Recorrer Lista</button>
+        <button @onclick="Buscar" class="btn btn-light me-2 mb-2">Buscar Nodo</button>
+        <br /><br />
+
+        <button @onclick="EliminarNodoInicio" class="btn btn-danger me-2 mb-2" disabled="@ListaVacia"> ❌ Eliminar Nodo al Inicio</button>
+        <button @onclick="EliminarNodoFinal" class="btn btn-danger me-2 mb-2" disabled="@ListaVacia"> ❌ Eliminar Nodo al Final</button>
+        <button @onclick="EliminarNodoAntesX" class="btn btn-danger me-2 mb-2" disabled="@ListaVacia"> ❌ Eliminar Nodo Antes de</button>
+        <button @onclick="EliminarNodoDespuesX" class="btn btn-danger me-2 mb-2" disabled="@ListaVacia"> ❌Eliminar Nodo Después de</button>
+        <button @onclick="EliminarNodoPosicion" class="btn btn-danger me-2 mb-2" disabled="@ListaVacia"> ❌ Eliminar Nodo en Posición</button>
+        <button @onclick="Ordernar" class="btn btn-secondary me-2 mb-2" disabled="@(ListaVacia || ListaEstaOrdenada)">
+            Ordenar Lista
+        </button>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(ResultadoBusqueda))
+{
+    <div class="alert @ColorMensaje mt-3">@ResultadoBusqueda</div>
+}
+
+<ol class="list-group">
+    @for (int i = 0; i < ValoresRecorridos.Count; i++)
+    {
+        <li class="list-group-item">P - @i: @ValoresRecorridos[i]</li>
+    }
+</ol>
+
+@code {
+
+    public string Valor { get; set; }
+    public string ValorBuscado { get; set; }
+    public int Posicion { get; set; }
+    public string ResultadoBusqueda { get; set; } = string.Empty;
+    public List<string> ValoresRecorridos { get; set; } = new List<string>();
+
+    public string ColorMensaje { get; set; } = "alert-info";
+
+
+
+    public LES Lista { get; set; }
+    public bool ListaVacia { get; set; } = true;
+    private bool ListaEstaOrdenada => Lista.EstaOrdenada();
+
+    protected override void OnInitialized()
+    {
+        Lista = new LES();
+        ActualizarEstadoLista();
+    }
+
+    private void ActualizarEstadoLista()
+    {
+
+        ListaVacia = Lista.PrimerNodo == null; // Si la lista no tiene nodos, está vacía
+        StateHasChanged();
+    }
+
+
+
+    public void AgregarFinal()
+
+    {
+
+        Lista.AgregarNodoFinal(CrearNodo());
+
+    }
+
+    public void AgregarInicio()
+
+    {
+
+        Lista.AgregarNodoInicio(CrearNodo());
+
+        ActualizarEstadoLista();
+
+    }
+
+    public void AgregarAntesDe()
+
+    {
+        Lista.AgregarDespuesDeX(ValorBuscado, Valor);
+        StateHasChanged();
+    }
+
+    public void AgregarDespuesDe()
+
+    {
+
+        Lista.AgregarDespuesDeX(ValorBuscado, Valor);
+
+        StateHasChanged();
+
+    }
+
+    public void AgregarEnPosicion()
+
+    {
+
+        Lista.AgregarNodoEnPosicionEspecifica(Posicion, Valor);
+
+        StateHasChanged();
+
+    }
+
+    public void AgregarAntesDePosicion()
+
+    {
+
+        Lista.AgregarNodoAntesDePosicion(Posicion, Valor);
+
+        StateHasChanged();
+
+    }
+
+    public void AgregarDespuesDePosicion()
+
+    {
+
+        Lista.AgregarNodoDespuesPosicionEspecifica(Posicion, Valor);
+
+        StateHasChanged();
+
+    }
+
+
+    public void Buscar()
+    {
+        if (string.IsNullOrWhiteSpace(ValorBuscado))
+        {
+            ColorMensaje = "alert-warning";
+            ResultadoBusqueda = "Ingrese un valor para buscar.";
+            return;
+        }
+
+        int posicion = Lista.BuscarElemento(ValorBuscado);
+        ColorMensaje = posicion != -1 ? "alert-success" : "alert-danger";
+        ResultadoBusqueda = posicion != -1
+            ? $"El valor {ValorBuscado} está en la lista en la posición {posicion}."
+            : $"El valor {ValorBuscado} no está en la lista.";
+    }
+
+    public void RecorrerListaRecursivo()
+    {
+        ValoresRecorridos.Clear();
+        if (Lista.PrimerNodo == null)
+        {
+            ValoresRecorridos.Add("La lista está vacía.");
+            return;
+        }
+        RecorridoRecursivo(Lista.PrimerNodo);
+    }
+
+    private void RecorridoRecursivo(Nodo nodoActual)
+    {
+        if (nodoActual == null) return;
+        ValoresRecorridos.Add(nodoActual.Informacion);
+        RecorridoRecursivo(nodoActual.Referencia);
+    }
+
+    public void EliminarNodoInicio()
+    {
+        Lista.EliminarNodoAlInicio();
+        ActualizarEstadoLista();
+    }
+
+    public void EliminarNodoFinal()
+    {
+        Lista.EliminarNodoAlFinal();
+        ActualizarEstadoLista();
+    }
+
+    public void EliminarNodoAntesX()
+    {
+        Lista.EliminarNodoAntesDeX(ValorBuscado);
+        ActualizarEstadoLista();
+    }
+
+    public void EliminarNodoDespuesX()
+    {
+        Lista.EliminarNodoDespuesDeX(ValorBuscado);
+        ActualizarEstadoLista();
+    }
+
+    public void EliminarNodoPosicion()
+    {
+        Lista.EliminarNodoEnPosicion(Posicion);
+        ActualizarEstadoLista();
+    }
+
+    public void Ordernar()
+    {
+        Lista.OrdenarLista();
+        StateHasChanged();
+    }
+
+    Nodo CrearNodo() => new Nodo(Valor);
+}
